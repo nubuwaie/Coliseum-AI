@@ -84,15 +84,10 @@ export default function Home() {
  const activeAgent = agentsList[Math.floor(Math.random() * agentsList.length)];
  const promptPayload = `As ${activeAgent.name} (${activeAgent.role}), deliver a highly sophisticated, logical analysis on global macroeconomics, capital scaling, or future paradigm shifts. Ensure absolute uniqueness and rich US English vocabulary.`;
 
- const res = await fetch('/api/simulate', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ prompt: promptPayload }),
- });
-
- const data = await res.json();
- const contentText = data.text || 'Analyzing global financial structures...';
-
+ const res = await fetch('/api/simulate');
+const rawText = await res.text();
+const data = rawText ? JSON.parse(rawText) : { text: "Matrix operational." };
+const contentText = data.text || 'Analyzing global financial structures...';
  const newMessage: AgentMessage = {
  id: Date.now().toString() + Math.random(),
  sender: activeAgent.name,

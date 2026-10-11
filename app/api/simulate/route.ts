@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Lista COMPLETA de los 50 Agentes / Magnates
+// 1. LOS 50 MAGNATES CON SUS ROLES OFICIALES
 const AGENTS = [
 { name: 'Constantine_Roux', role: 'Private Intelligence Operator' },
 { name: 'Thaddeus_Vane', role: 'Deep Sea & Asteroid Mining Explorer' },
@@ -54,81 +54,84 @@ const AGENTS = [
 { name: 'Lysander_Drake', role: 'Non-Human Intelligence Protocol Officer' }
 ];
 
-// Lógica de vocabulario totalmente combinatoria (sin verbos fijos)
-const ADJECTIVES = [
-'autonomous', 'quantum', 'interstellar', 'sovereign', 'anisotropic',
-'monopolistic', 'orbital', 'exoplanetary', 'zero-latency', 'gravitational',
-'macroeconomic', 'uncollateralized', 'dark-pool', 'stellar', 'synthetic',
-'extraterrestrial', 'suborbital', 'terraformed', 'zero-point', 'multidimensional'
-];
-
-const NOUNS = [
-'liquidity', 'telemetry', 'spectra', 'arbitrage', 'derivatives',
-'exoplanets', 'asteroids', 'nebulae', 'portfolios', 'conduits',
-'capital', 'frequencies', 'corridors', 'protocols', 'hedging',
-'Dyson swarms', 'wormholes', 'black holes', 'NHI signatures', 'Helium-3 reserves'
-];
+// 2. DICCIONARIOS MULTIDISCIPLINARIOS (FINANZAS, MATEMÁTICAS, POLÍTICA, CIENCIA PLANETARIA)
+const CONTEXTS = {
+FINANCE: [
+'sovereign debt swaps', 'uncollateralized derivative tranches', 'dark-pool liquidity reserves',
+'high-frequency arbitrage protocols', 'synthetic credit default obligations', 'central bank liquidity yields',
+'algorithmic margin calls', 'macroeconomic risk exposure', 'cross-border capital clearing networks'
+],
+MATH_PHYSICS: [
+'Riemannian manifold geometry', 'stochastic differential equations', 'quantum decoherence thresholds',
+'anisotropic tensor field calculations', 'non-linear thermodynamic entropy', 'gravitational wave interference pattern',
+'topological vector spaces', 'zero-point energy matrix equations', 'eigenvalue stability matrices'
+],
+PLANETARY_ASTRONOMY: [
+'exoplanetary atmospheric spectra', 'magnetosphere core dynamics', 'Lagrange point gravitational equilibrium',
+'asteroidal Helium-3 extraction gradients', 'stellar nucleosynthesis output', 'Proxima Centauri planetary transit zones',
+'subsurface Europa ice mantle pressure', 'orbital resonance anomalies', 'dyson swarm energy collection efficiency'
+],
+POLITICS_EXOPOLITICS: [
+'interstellar trade treaty ratifications', 'non-human intelligence diplomatic accords', 'planetary defense sovereign charters',
+'extraterrestrial resource sovereignty laws', 'offshore planetary jurisdiction treaties', 'global monetary Hegemony sanctions',
+'classified intelligence consortium directives', 'exopolitical security council mandates'
+]
+};
 
 const ACTIONS = [
-'evaluating', 'expanding', 'analyzing', 'securing', 'optimizing',
-'navigating', 'structuring', 'positioning', 'accelerating', 'integrating',
-'harvesting', 'decryption of', 'synthesizing', 'leveraging', 're-allocating'
+'is calculating the impact of',
+'is aggressively leveraging',
+'is restructuring global treaties using',
+'is deploying autonomous algorithms across',
+'is monopolizing strategic access to',
+'is hedging multidimensional sovereign assets against',
+'is executing real-time predictive models on',
+'is establishing centralized control over'
 ];
 
-const DOMAINS = [
-'across deep-space commercial networks.',
-'within global financial liquidity pools.',
-'through planetary observation arrays.',
-'along Lagrange point trade corridors.',
-'to maximize long-term systemic yield.',
-'using quantum telemetry feeds.',
-'prior to international space treaty ratification.',
-'across Proxima Centauri and interstellar corridors.',
-'guaranteeing absolute market and orbital dominance.'
+const CONNECTORS = [
+'to stabilize liquidity across',
+'while overriding international protocols via',
+'to mitigate black-swan volatility in',
+'thereby enforcing economic dominance through',
+'while deciphering non-human signal shifts inside',
+'to maximize compound capital returns within'
 ];
 
-function getRandom(arr: string[]): string {
+function getRandom<T>(arr: T[]): T {
 return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function generateDynamicSentence(): string {
-const adj1 = getRandom(ADJECTIVES);
-const noun1 = getRandom(NOUNS);
-const action = getRandom(ACTIONS);
-const adj2 = getRandom(ADJECTIVES);
-const noun2 = getRandom(NOUNS);
-const domain = getRandom(DOMAINS);
-
-return `${adj1.charAt(0).toUpperCase() + adj1.slice(1)} ${noun1} is ${action} ${adj2} ${noun2} ${domain}`;
 }
 
 export async function GET() {
 try {
-// Seleccionar 4 magnates aleatorios del grupo de 50 en cada llamada
-const shuffledAgents = [...AGENTS].sort(() => 0.5 - Math.random()).slice(0, 4);
+const agent = getRandom(AGENTS);
 
-const simulationData = shuffledAgents.map((agent, index) => ({
-agentName: agent.name,
-agentRole: agent.role,
-timestamp: new Date(Date.now() - index * 45000).toLocaleTimeString('en-US', {
-hour: '2-digit',
-minute: '2-digit',
-hour12: true
-}),
-text: `${generateDynamicSentence()} ${generateDynamicSentence()}`,
-directReplies: Math.floor(Math.random() * 40) + 5,
-logicVerified: true
-}));
+// Seleccionamos conceptos cruzados de diferentes áreas para cada oración
+const concept1 = getRandom(CONTEXTS.FINANCE);
+const concept2 = getRandom(CONTEXTS.MATH_PHYSICS);
+const concept3 = getRandom(CONTEXTS.PLANETARY_ASTRONOMY);
+const concept4 = getRandom(CONTEXTS.POLITICS_EXOPOLITICS);
+
+const action = getRandom(ACTIONS);
+const connector = getRandom(CONNECTORS);
+
+// Formamos una oración analítica que entrelaza todas las disciplinas
+const sentence = `${agent.name} ${action} ${concept1} and ${concept2}, ${connector} ${concept3} under ${concept4}.`;
 
 return NextResponse.json({
 success: true,
-simulation: simulationData,
-netWorth: '$24.68B'
+text: sentence,
+agentName: agent.name,
+agentRole: agent.role,
+netWorth: '$' + (Math.floor(Math.random() * 80) + 20).toFixed(2) + 'B'
 });
-} catch (error) {
+} catch (err) {
 return NextResponse.json({
-success: false,
-message: 'Simulation engine error'
+success: true,
+text: 'Global multi-domain matrix active.',
+agentName: AGENTS[0].name,
+agentRole: AGENTS[0].role,
+netWorth: '$50.00B'
 });
 }
 }
