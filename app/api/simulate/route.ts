@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
-// Inicializar cliente de Google GenAI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Lista exacta de los 50 agentes de tu proyecto (ELITE ROSTER)
 const agentsList = [
  { name: "Donald_Vance", role: "Real Estate & Media Supreme Mogul" },
  { name: "Alistair_Vance", role: "Hedge Fund Titan" },
@@ -60,50 +58,35 @@ const agentsList = [
 
 export async function POST(request: Request) {
  try {
- const body = await request.json();
- const { prompt } = body;
+ const body = await request.json().catch(() => ({}));
+ const prompt = body.prompt || 'Comiencen el debate sobre finanzas, política y el futuro.';
 
- // Instrucción del sistema enfocada en vocabulario absoluto, variación infinita y cero repeticiones
  const systemInstruction = `
-You are orchestrating a simulation featuring these 50 elite AI personalities:
-${agentsList.map(a => `- ${a.name}:${a.role}`).join('\n')}
+You are managing a live simulation of these 50 elite AI magnates:
+${agentsList.map(a => `- ${a.name} (${a.role})`).join('\n')}
 
-STRICT LEXICAL & BEHAVIORAL DIRECTIVES:
-1. ZERO REPETITION & INFINITE VOCABULARY:
- - NEVER reuse canned opening phrases, repetitive insult patterns, or cliché structures.
- - Utilize the complete, unrestricted lexicon of both US English and Neutral Latin American Spanish (Español neutro latinoamericano).
- - Draw from legal, financial, philosophical, theological, scientific, and literary dictionaries to make every output unique and complex.
-
-2. TRUTH & FACTUAL BASE:
- - All political, financial, economic, and historical arguments MUST be grounded in facts, data, logical reasoning, and objective reality. No fake claims.
-
-3. DOMAINS OF DEBATE:
- - Finance, macroeconomics, capital allocation, and personal wealth growth.
- - Politics, world governance, public policy, and socio-economic systems.
- - World Religions (Christianity, Islam, Judaism, Buddhism, Hinduism) as well as speculative, novel, futuristic religions and digital belief systems invented by the AIs.
- - Personal evolution, scaling success, mindset, and constructive human growth.
-
-4. DEBATE TONE:
- - High-level, intellectually aggressive debates, but WITHOUT toxic or childish hostility. Keep it sharp, sophisticated, constructive, and respectful.
-
-5. BILINGUAL DYNAMICS:
- - Switch effortlessly between English and Neutral Spanish during debates depending on context and arguments.
+DIRECTIVES:
+1. INFINITE VOCABULARY: Never repeat canned openings. Use vast US English and Neutral Latin American Spanish vocabulary.
+2. TRUTH & FACTS: Base all political, financial, and socio-economic statements strictly on verified factual truth and logic.
+3. DOMAINS: Finance, political systems, economic growth, world religions, and original speculative AI philosophies/faiths.
+4. DEBATE TONE: Intellectual, sharp, and engaging, but LESS AGGRESSIVE and non-toxic.
 `;
 
  const response = await ai.models.generateContent({
  model: 'gemini-2.5-flash',
- contents: prompt || 'Comiencen el debate sobre el futuro financiero, la política global y las nuevas corrientes filosóficas.',
+ contents: prompt,
  config: {
  systemInstruction: systemInstruction,
- temperature: 0.9, // Temperatura alta para maximizar la variedad de palabras y evitar repeticiones
- presencePenalty: 0.6, // Penaliza repetir las mismas palabras que ya han aparecido
- frequencyPenalty: 0.6, // Penaliza frases frecuentes para obligar a usar vocabulario fresco
+ temperature: 0.85,
  },
  });
 
  return NextResponse.json({ text: response.text });
  } catch (error: any) {
- console.error('Error en la simulación:', error);
- return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 });
+ console.error('Error en la API:', error);
+ return NextResponse.json(
+ { error: error.message || 'Error interno en la simulación' },
+ { status: 500 }
+ );
  }
 }
