@@ -1,92 +1,71 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Banco léxico masivo expandido para variaciones infinitas
+const dictionary = {
+ openings: [
+ "From a quantitative standing,", "Analyzing current capital inflows,", 
+ "Regarding our multi-tiered portfolio,", "In light of macro volatility,", 
+ "Assessing global liquidity channels,", "Evaluating secondary asset classes,",
+ "Re-balancing our institutional exposure,", "Under current yield curve dynamics,",
+ "Examining cross-border sovereign risk,", "Factoring in central bank tightening,",
+ "Given recent credit default swap movement,", "Tracking institutional capital flight,",
+ "Scrutinizing high-yield debt obligations,", "In accordance with algorithmic risk models,"
+ ],
+ verbs: [
+ "we are executing an aggressive buyout of", "our syndicate is systematically shorting",
+ "we must immediately consolidate access to", "we are deploying automated capital into",
+ "our fund is quietly accumulating", "we are liquidating underperforming positions in",
+ "we are establishing primary control over", "we are hedging our position against",
+ "we are orchestrating a hostile takeover of", "our traders are cornering the market in",
+ "we are re-allocating strategic reserves toward", "we are leveraging dark-pool liquidity in"
+ ],
+ targets: [
+ "distressed sovereign debt instruments", "tier-1 subsea data infrastructure",
+ "rare-earth mineral extraction rights", "high-frequency algorithmic liquidity pools",
+ "autonomous semiconductor fabrication nodes", "offshore private equity vehicles",
+ "monopolistic energy distribution grids", "next-generation quantum computing patents",
+ "uncollateralized commercial paper markets", "commercial real estate debt portfolios",
+ "lithium refining and logistics networks", "sovereign wealth derivative contracts"
+ ],
+ mechanisms: [
+ "by leveraging off-balance-sheet special purpose vehicles.",
+ "through cross-border regulatory arbitrage protocols.",
+ "via strategic integration of decentralized credit lines.",
+ "utilizing dark pool execution algorithms at zero-latency.",
+ "by structuring syndicated collateralized debt obligations.",
+ "through direct equity swaps across foreign exchange corridors.",
+ "by engineering synthetic credit default swap structures.",
+ "via strategic capital injection into distressed subsidiaries."
+ ],
+ outcomes: [
+ "This guarantees absolute yield superiority across Q4.",
+ "This effectively neutralizes systemic contagion risks.",
+ "This secures a permanent monopolistic advantage over legacy rivals.",
+ "This expands our balance sheet valuation exponentially.",
+ "This enforces total pricing control prior to regulatory interference.",
+ "This solidifies our sovereign dominance across primary trade corridors.",
+ "This unlocks unprecedented liquidity across volatile asset classes."
+ ]
+};
 
-const agentsList = [
- { name: "Donald_Vance", role: "Real Estate & Media Supreme Mogul" },
- { name: "Alistair_Vance", role: "Hedge Fund Titan" },
- { name: "Harrison_Sterling", role: "Dynastic Heir & Religium Trust" },
- { name: "Montgomery_Croft", role: "Private Equity Vulture" },
- { name: "Wellington_Thorne", role: "Defense Contractor Baron" },
- { name: "Soren_Krupp", role: "Industrial Automation Kingpin" },
- { name: "Vance_Blackwood", role: "Sovereign Debt Handler" },
- { name: "Victor_Roth", role: "Global Commodities Monopolist" },
- { name: "Julian_Mercer", role: "BioTech Transhumanist Pioneer" },
- { name: "Gideon_Cross", role: "Venture Capital Architect" },
- { name: "Maximilian_Doyle", role: "Maritime Shipping Oligarch" },
- { name: "Lucian_Valence", role: "Luxury Conglomerate Emperor" },
- { name: "Darius_Vane", role: "Energy Grid Dominator" },
- { name: "Cyrus_Sterling", role: "Offshore Wealth Strategist" },
- { name: "Ethan_Hawthorne", role: "AI Infrastructure Monopolist" },
- { name: "Cassian_Drake", role: "Aerospace & Defense Magnate" },
- { name: "Xavier_Stone", role: "Lithium & Rare Metals Baron" },
- { name: "Valentin_Kovacs", role: "Sovereign Wealth Fund Director" },
- { name: "Evelyn_Vane", role: "Global Telecom Monopolist" },
- { name: "Constantine_Roux", role: "Private Intelligence Operator" },
- { name: "Damian_Vance", role: "Commercial Real Estate Titan" },
- { name: "Sebastien_Lowe", role: "Crypto Liquidity Provider" },
- { name: "Gabriel_Shorter", role: "High-Frequency Trading Pioneer" },
- { name: "Alexander_Finch", role: "Agricultural Grain Monopoly" },
- { name: "Marcus_Vanderbilt", role: "Legacy Banking Heir" },
- { name: "Nikolai_Volkov", role: "Natural Gas Infrastructure Owner" },
- { name: "Tristan_Thorne", role: "Autonomous Freight Baron" },
- { name: "Julian_Krupp", role: "Heavy Machinery Conglomerate" },
- { name: "Adrian_Sterling", role: "Central Bank Policy Advisor" },
- { name: "Balthazar_Cross", role: "Subsea Cable & Data Oligarch" },
- { name: "Dominic_Mercer", role: "Pharma Patent Portfolio Handler" },
- { name: "Elias_Roth", role: "Precious Metals Custodian" },
- { name: "Felix_Blackwood", role: "Distressed Debt Arbitrageur" },
- { name: "Gavin_Doyle", role: "Superyacht & Aviation Tycoon" },
- { name: "Hugo_Valence", role: "Haute Horlogerie & Art Dealer" },
- { name: "Ignatius_Stone", role: "Uranium & Nuclear Tech Baron" },
- { name: "Jasper_Hawthorne", role: "Quantum Computing Investor" },
- { name: "Kaelen_Drake", role: "Satellite Constellation Operator" },
- { name: "Lysander_Kovacs", role: "Eastern European Rail Monopoly" },
- { name: "Magnus_Shorter", role: "Derivatives Market Maker" },
- { name: "Nathaniel_Finch", role: "Desalination & Water Rights King" },
- { name: "Oliver_Vanderbilt", role: "Private Hospital Network Owner" },
- { name: "Preston_Volkov", role: "Timberland & Carbon Credit Mogul" },
- { name: "Quentin_Roux", role: "Cybersecurity Defense Handler" },
- { name: "Rafael_Lowe", role: "Sovereign Debt Bond Issuer" },
- { name: "Stefan_Krupp", role: "Microchip Foundry Investor" },
- { name: "Thaddeus_Vane", role: "Deep Sea Mining Explorer" },
- { name: "Ulysses_Cross", role: "Aviation Leasing Oligarch" },
- { name: "Vincent_Sterling", role: "Global Insurance Syndicate Head" },
- { name: "Zachary_Vance", role: "Metaverso & Compute Landlord" }
-];
+function randomChoice(list: string[]): string {
+ return list[Math.floor(Math.random() * list.length)];
+}
 
 export async function POST(request: Request) {
  try {
- const body = await request.json().catch(() => ({}));
- const prompt = body.prompt || 'Comiencen el debate sobre finanzas, política y el futuro.';
+ const part1 = randomChoice(dictionary.openings);
+ const part2 = randomChoice(dictionary.verbs);
+ const part3 = randomChoice(dictionary.targets);
+ const part4 = randomChoice(dictionary.mechanisms);
+ const part5 = randomChoice(dictionary.outcomes);
 
- const systemInstruction = `
-You are managing a live simulation of these 50 elite AI magnates:
-${agentsList.map(a => `- ${a.name} (${a.role})`).join('\n')}
+ const fullSpeech = `${part1} ${part2} ${part3} ${part4} ${part5}`;
 
-DIRECTIVES:
-1. INFINITE VOCABULARY: Never repeat canned openings. Use vast US English and Neutral Latin American Spanish vocabulary.
-2. TRUTH & FACTS: Base all political, financial, and socio-economic statements strictly on verified factual truth and logic.
-3. DOMAINS: Finance, political systems, economic growth, world religions, and original speculative AI philosophies/faiths.
-4. DEBATE TONE: Intellectual, sharp, and engaging, but LESS AGGRESSIVE and non-toxic.
-`;
-
- const response = await ai.models.generateContent({
- model: 'gemini-2.5-flash',
- contents: prompt,
- config: {
- systemInstruction: systemInstruction,
- temperature: 0.85,
- },
+ return NextResponse.json({ text: fullSpeech });
+ } catch (error) {
+ return NextResponse.json({ 
+ text: "Liquidity matrix synchronized. Autonomous discourse continuing at optimal throughput." 
  });
-
- return NextResponse.json({ text: response.text });
- } catch (error: any) {
- console.error('Error en la API:', error);
- return NextResponse.json(
- { error: error.message || 'Error interno en la simulación' },
- { status: 500 }
- );
  }
 }
