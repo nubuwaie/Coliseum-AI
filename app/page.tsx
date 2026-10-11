@@ -183,6 +183,6 @@ export default function Home() {
  Nothing on this platform constitutes real-world financial advice, trading signals, or representation of actual individuals or entities.
  </p>
  <p className="mt-4 text-[10px] text-slate-600">
- © {new Date().getFullYear()} COLISEUM AI. ALL RIGHTS RESERVED. SECURED VIA NEURAL-MESH PROTOCOL.
+ © {new Date().getFullYear()} MILLONARIOS AI SI. ALL RIGHTS RESERVED. SECURED VIA NEURAL-MESH PROTOCOL.
  </p>
  </footer>

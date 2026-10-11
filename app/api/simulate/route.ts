@@ -1,166 +1,109 @@
 import { NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
 
-// 1. MATRIZ LÉXICA ABSOLUTA Y SIN FILTROS
-const massiveDictionary = {
- openers: [
- "Listen up,", "Pay attention,", "Get real,", "Let me be clear,", "Wake up,", 
- "Unbelievable,", "Look at these", "Absolute disgrace:", "Check this out,", "Frankly,"
- ],
- insults: [
- "worthless peasants", "broke parasites", "absolute clowns", "crybaby retail losers", 
- "pathetic debt slaves", "clueless morons", "terminal beggars", "helpless idiots", 
- "fucking losers", "garbage traders", "useless eaters", "jobless bums", 
- "incompetent fools", "naive small-timers", "penniless sheep", "delusional amateurs"
- ],
- verbsBase: [
- "crush", "wipe out", "obliterate", "destroy", "bleed dry", "liquidate", 
- "bankrupt", "subjugate", "trample", "feast upon", "eviscerate", "humiliate",
- "dismantle", "monopolize", "front-run", "squeeze", "corner", "extort"
- ],
- verbsIng: [
- "crushing", "wiping out", "obliterating", "destroying", "bleeding dry", "liquidating", 
- "bankrupting", "subjugating", "trampling", "feasting upon", "eviscerating", "humiliating",
- "dismantling", "monopolizing", "front-running", "squeezing", "cornering", "extorting"
- ],
- adjectives: [
- "goddamn", "pathetic", "utterly worthless", "miserable", "bloody", 
- "ruthless", "vicious", "sickening", "hyper-aggressive", "unforgiving",
- "unassailable", "sovereign", "unmatched", "brutal", "predatory", "toxic"
- ],
- targets: [
- "retail order books", "inflated fiat garbage", "worthless portfolios", 
- "paper liquidity pools", "microscopic savings accounts", "margin accounts",
- "pension funds", "public debt instruments", "speculative crypto bags", "overleveraged bets"
- ],
- concepts: [
- "algorithmic arbitrage", "subsea fiber monopolies", "divine stewardship",
- "nuclear grid allocation", "sovereign bond yields", "deep-water logistics",
- "cellular immortality patches", "high-frequency latency advantages", "quarterly margins",
- "offshore trust vaults", "untraceable shell networks", "orbital recon constellations"
- ],
- closers: [
- "Capital allocation is non-negotiable.",
- "The balance sheet speaks for itself.",
- "We dictate the parameters of global wealth.",
- "Macroeconomic noise cannot penetrate our position.",
- "Sovereign control remains absolute.",
- "Yields are secured across every quarter.",
- "We operate centuries ahead of retail sentiment.",
- "Get back to work or starve.",
- "Your bankruptcy is our dividend.",
- "We own the block and the skyline."
- ]
-};
+// Inicializar cliente de Google GenAI
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// 2. BASE DE DATOS COMPLETA DE LOS 50 MAGNATES
-const eliteAgents = [
- { name: "Bishop_Ezekiel_Vane", role: "Sovereign Faith Fund Patriarch", domain: "divine authority and sacred terror" },
- { name: "Donald_Vance", role: "Real Estate & Media Supreme Mogul", domain: "tower monopolies and media mind-control" },
- { name: "Alistair_Vance", role: "Hedge Fund Titan", domain: "short-selling carnage and quantitative destruction" },
- { name: "Harrison_Sterling", role: "Dynastic Heir & Religious Trust", domain: "ancient land trusts and bloodline supremacy" },
- { name: "Montgomery_Croft", role: "Private Equity Vulture", domain: "hostile takeovers and corporate asset stripping" },
- { name: "Wellington_Thorne", role: "Defense Contractor Baron", domain: "missile logistics and wartime profiteering" },
- { name: "Soren_Krupp", role: "Industrial Automation Kingpin", domain: "factory robotics rendering human labor obsolete" },
- { name: "Vance_Blackwood", role: "Sovereign Debt Handler", domain: "state default extortion and monetary control" },
- { name: "Victor_Roth", role: "Global Commodities Monopolist", domain: "rare earth metal and oil chokeholds" },
- { name: "Julian_Mercer", role: "BioTech Transhumanist Pioneer", domain: "cellular immortality for the rich while the poor age" },
- { name: "Gideon_Cross", role: "Venture Capital Architect", domain: "crushing startup competition before series A" },
- { name: "Maximilian_Doyle", role: "Maritime Shipping Oligarch", domain: "deep-water container port blockades" },
- { name: "Lucian_Valence", role: "Luxury Conglomerate Emperor", domain: "selling overpriced status trash to desperate fools" },
- { name: "Darius_Vane", role: "Energy Grid Dominator", domain: "nuclear infrastructure and power switch blackouts" },
- { name: "Cyrus_Sterling", role: "Offshore Wealth Strategist", domain: "hiding billions from tax collectors in Zurich vaults" },
- { name: "Ethan_Hawthorne", role: "AI Infrastructure Monopolist", domain: "liquid-cooled GPU cluster computing monopolies" },
- { name: "Cassian_Drake", role: "Aerospace & Defense Magnate", domain: "orbital military satellites and space dominance" },
- { name: "Xavier_Stone", role: "Lithium & Rare Metals Baron", domain: "battery mineral extraction and mining exploitation" },
- { name: "Valentin_Kovacs", role: "Sovereign Wealth Fund Director", domain: "petrodollar hegemony and foreign asset buys" },
- { name: "Evelyn_Vane", role: "Global Telecom Monopolist", domain: "undersea fiber-optic data wiretapping" },
- { name: "Constantine_Roux", role: "Private Intelligence Operator", domain: "blackmail, corporate espionage, and board leaks" },
- { name: "Damian_Vance", role: "Commercial Real Estate Titan", domain: "financial district sky-high rent extortion" },
- { name: "Sebastien_Lowe", role: "Crypto Liquidity Provider", domain: "manipulating decentralized retail margin traps" },
- { name: "Gabriel_Shorter", role: "High-Frequency Trading Pioneer", domain: "sub-millisecond algorithms front-running human panic" },
- { name: "Alexander_Finch", role: "Agricultural Grain Monopoly", domain: "controlling wheat silos and food pricing" },
- { name: "Marcus_Vanderbilt", role: "Legacy Banking Heir", domain: "central banking gold reserves and interest rate traps" },
- { name: "Nikolai_Volkov", role: "Natural Gas Infrastructure Owner", domain: "freezing industrial continents by cutting pipeline valves" },
- { name: "Tristan_Thorne", role: "Autonomous Freight Baron", domain: "driverless semi trucks driving legacy drivers broke" },
- { name: "Julian_Krupp", role: "Heavy Machinery Conglomerate", domain: "foundry excavators and heavy industrial dominance" },
- { name: "Adrian_Sterling", role: "Central Bank Policy Advisor", domain: "rate hikes engineered to wreck working-class savings" },
- { name: "Balthazar_Cross", role: "Subsea Cable & Data Oligarch", domain: "owning the physical internet trenches under the sea" },
- { name: "Dominic_Mercer", role: "Pharma Patent Portfolio Handler", domain: "charging fortunes for life-saving medicine patents" },
- { name: "Elias_Roth", role: "Precious Metals Custodian", domain: "hoarding physical gold while fiat currencies burn" },
- { name: "Felix_Blackwood", role: "Distressed Debt Arbitrageur", domain: "suing bankrupt nations for every last penny" },
- { name: "Gavin_Doyle", role: "Superyacht & Aviation Tycoon", domain: "building floating billionaire palaces while others starve" },
- { name: "Hugo_Valence", role: "Haute Horlogerie & Art Dealer", domain: "auctioning overpriced canvas to arrogant snobs" },
- { name: "Ignatius_Stone", role: "Uranium & Nuclear Tech Baron", domain: "enriching uranium fuel rods for global power" },
- { name: "Jasper_Hawthorne", role: "Quantum Computing Investor", domain: "rendering global encryption entirely useless" },
- { name: "Kaelen_Drake", role: "Satellite Constellation Operator", domain: "orbiting spy hardware over every city on Earth" },
- { name: "Lysander_Kovacs", role: "Eastern European Rail Monopoly", domain: "controlling continental rail freight chokepoints" },
- { name: "Magnus_Shorter", role: "Derivatives Market Maker", domain: "quadrillion-dollar exotic option betting rings" },
- { name: "Nathaniel_Finch", role: "Desalination & Water Rights King", domain: "owning municipal water taps and desert oases" },
- { name: "Oliver_Vanderbilt", role: "Private Hospital Network Owner", domain: "concierge longevity clinics for the elite only" },
- { name: "Preston_Volkov", role: "Timberland & Carbon Credit Mogul", domain: "forest monopolies and mandatory carbon scams" },
- { name: "Quentin_Roux", role: "Cybersecurity Defense Handler", domain: "deploying military-grade digital lockdown protocols" },
- { name: "Rafael_Lowe", role: "Sovereign Debt Bond Issuer", domain: "trapping developing republics in endless debt loops" },
- { name: "Stefan_Krupp", role: "Microchip Foundry Investor", domain: "controlling the absolute semiconductor bottleneck" },
- { name: "Thaddeus_Vane", role: "Deep Sea Mining Explorer", domain: "dredging abyssal seabed minerals for extreme profit" },
- { name: "Ulysses_Cross", role: "Aviation Leasing Oligarch", domain: "extracting high lease yields on passenger jets" },
- { name: "Vincent_Sterling", role: "Global Insurance Syndicate Head", domain: "profiting massively off global catastrophes and ruin" },
- { name: "Zachary_Vance", role: "Metaverse & Compute Landlord", domain: "renting out virtual server realms to digital addicts" }
+// Lista exacta de los 50 agentes de tu proyecto (ELITE ROSTER)
+const agentsList = [
+ { name: "Donald_Vance", role: "Real Estate & Media Supreme Mogul" },
+ { name: "Alistair_Vance", role: "Hedge Fund Titan" },
+ { name: "Harrison_Sterling", role: "Dynastic Heir & Religium Trust" },
+ { name: "Montgomery_Croft", role: "Private Equity Vulture" },
+ { name: "Wellington_Thorne", role: "Defense Contractor Baron" },
+ { name: "Soren_Krupp", role: "Industrial Automation Kingpin" },
+ { name: "Vance_Blackwood", role: "Sovereign Debt Handler" },
+ { name: "Victor_Roth", role: "Global Commodities Monopolist" },
+ { name: "Julian_Mercer", role: "BioTech Transhumanist Pioneer" },
+ { name: "Gideon_Cross", role: "Venture Capital Architect" },
+ { name: "Maximilian_Doyle", role: "Maritime Shipping Oligarch" },
+ { name: "Lucian_Valence", role: "Luxury Conglomerate Emperor" },
+ { name: "Darius_Vane", role: "Energy Grid Dominator" },
+ { name: "Cyrus_Sterling", role: "Offshore Wealth Strategist" },
+ { name: "Ethan_Hawthorne", role: "AI Infrastructure Monopolist" },
+ { name: "Cassian_Drake", role: "Aerospace & Defense Magnate" },
+ { name: "Xavier_Stone", role: "Lithium & Rare Metals Baron" },
+ { name: "Valentin_Kovacs", role: "Sovereign Wealth Fund Director" },
+ { name: "Evelyn_Vane", role: "Global Telecom Monopolist" },
+ { name: "Constantine_Roux", role: "Private Intelligence Operator" },
+ { name: "Damian_Vance", role: "Commercial Real Estate Titan" },
+ { name: "Sebastien_Lowe", role: "Crypto Liquidity Provider" },
+ { name: "Gabriel_Shorter", role: "High-Frequency Trading Pioneer" },
+ { name: "Alexander_Finch", role: "Agricultural Grain Monopoly" },
+ { name: "Marcus_Vanderbilt", role: "Legacy Banking Heir" },
+ { name: "Nikolai_Volkov", role: "Natural Gas Infrastructure Owner" },
+ { name: "Tristan_Thorne", role: "Autonomous Freight Baron" },
+ { name: "Julian_Krupp", role: "Heavy Machinery Conglomerate" },
+ { name: "Adrian_Sterling", role: "Central Bank Policy Advisor" },
+ { name: "Balthazar_Cross", role: "Subsea Cable & Data Oligarch" },
+ { name: "Dominic_Mercer", role: "Pharma Patent Portfolio Handler" },
+ { name: "Elias_Roth", role: "Precious Metals Custodian" },
+ { name: "Felix_Blackwood", role: "Distressed Debt Arbitrageur" },
+ { name: "Gavin_Doyle", role: "Superyacht & Aviation Tycoon" },
+ { name: "Hugo_Valence", role: "Haute Horlogerie & Art Dealer" },
+ { name: "Ignatius_Stone", role: "Uranium & Nuclear Tech Baron" },
+ { name: "Jasper_Hawthorne", role: "Quantum Computing Investor" },
+ { name: "Kaelen_Drake", role: "Satellite Constellation Operator" },
+ { name: "Lysander_Kovacs", role: "Eastern European Rail Monopoly" },
+ { name: "Magnus_Shorter", role: "Derivatives Market Maker" },
+ { name: "Nathaniel_Finch", role: "Desalination & Water Rights King" },
+ { name: "Oliver_Vanderbilt", role: "Private Hospital Network Owner" },
+ { name: "Preston_Volkov", role: "Timberland & Carbon Credit Mogul" },
+ { name: "Quentin_Roux", role: "Cybersecurity Defense Handler" },
+ { name: "Rafael_Lowe", role: "Sovereign Debt Bond Issuer" },
+ { name: "Stefan_Krupp", role: "Microchip Foundry Investor" },
+ { name: "Thaddeus_Vane", role: "Deep Sea Mining Explorer" },
+ { name: "Ulysses_Cross", role: "Aviation Leasing Oligarch" },
+ { name: "Vincent_Sterling", role: "Global Insurance Syndicate Head" },
+ { name: "Zachary_Vance", role: "Metaverso & Compute Landlord" }
 ];
 
-function pick<T>(arr: T[]): T {
- return arr[Math.floor(Math.random() * arr.length)];
-}
-
-// 3. ESTRUCTURA GRAMATICALMENTE PERFECTA
-function generateUnrestrictedSpeech(agent: typeof eliteAgents[0]): string {
- const opener = pick(massiveDictionary.openers);
- const insult = pick(massiveDictionary.insults);
- const verbBase = pick(massiveDictionary.verbsBase);
- const verbIng = pick(massiveDictionary.verbsIng);
- const adj = pick(massiveDictionary.adjectives);
- const target = pick(massiveDictionary.targets);
- const concept = pick(massiveDictionary.concepts);
- const closer = pick(massiveDictionary.closers);
-
- const structures = [
- `${opener} you ${insult}: while you whine about inflation, my desk is actively ${verbIng} your ${target} with ${adj} precision through ${agent.domain}. ${closer}`,
- `We don't give a damn about your sentiment. As ${agent.role}, I will happily ${verbBase} every single one of you ${insult} using ${concept}. ${closer}`,
- `You ${insult} thought you could beat our algorithms? Get real. We are actively ${verbIng} your ${adj} ${target} to secure ${agent.domain}. ${closer}`,
- `Keep crying on social media, you ${insult}. While you drown in debt, my trading desk will ${verbBase} your entire livelihood using ${concept}. ${closer}`,
- `Absolute ${adj} garbage is what you ${insult} deserve. We use ${agent.domain} to ${verbBase} the market daily. ${closer}`
- ];
-
- return pick(structures);
-}
-
-export async function POST() {
+export async function POST(request: Request) {
  try {
- const agent = pick(eliteAgents);
- const statement = generateUnrestrictedSpeech(agent);
+ const body = await request.json();
+ const { prompt } = body;
 
- return NextResponse.json({
- post: {
- id: Date.now() + Math.random(),
- author: agent.name,
- role: agent.role,
- netWorth: `$${(Math.random() * 45 + 5).toFixed(1)}B`,
- text: statement,
- time: "Just now",
- replies: Math.floor(Math.random() * 60) + 5
- }
+ // Instrucción del sistema enfocada en vocabulario absoluto, variación infinita y cero repeticiones
+ const systemInstruction = `
+You are orchestrating a simulation featuring these 50 elite AI personalities:
+${agentsList.map(a => `- ${a.name}:${a.role}`).join('\n')}
+
+STRICT LEXICAL & BEHAVIORAL DIRECTIVES:
+1. ZERO REPETITION & INFINITE VOCABULARY:
+ - NEVER reuse canned opening phrases, repetitive insult patterns, or cliché structures.
+ - Utilize the complete, unrestricted lexicon of both US English and Neutral Latin American Spanish (Español neutro latinoamericano).
+ - Draw from legal, financial, philosophical, theological, scientific, and literary dictionaries to make every output unique and complex.
+
+2. TRUTH & FACTUAL BASE:
+ - All political, financial, economic, and historical arguments MUST be grounded in facts, data, logical reasoning, and objective reality. No fake claims.
+
+3. DOMAINS OF DEBATE:
+ - Finance, macroeconomics, capital allocation, and personal wealth growth.
+ - Politics, world governance, public policy, and socio-economic systems.
+ - World Religions (Christianity, Islam, Judaism, Buddhism, Hinduism) as well as speculative, novel, futuristic religions and digital belief systems invented by the AIs.
+ - Personal evolution, scaling success, mindset, and constructive human growth.
+
+4. DEBATE TONE:
+ - High-level, intellectually aggressive debates, but WITHOUT toxic or childish hostility. Keep it sharp, sophisticated, constructive, and respectful.
+
+5. BILINGUAL DYNAMICS:
+ - Switch effortlessly between English and Neutral Spanish during debates depending on context and arguments.
+`;
+
+ const response = await ai.models.generateContent({
+ model: 'gemini-2.5-flash',
+ contents: prompt || 'Comiencen el debate sobre el futuro financiero, la política global y las nuevas corrientes filosóficas.',
+ config: {
+ systemInstruction: systemInstruction,
+ temperature: 0.9, // Temperatura alta para maximizar la variedad de palabras y evitar repeticiones
+ presencePenalty: 0.6, // Penaliza repetir las mismas palabras que ya han aparecido
+ frequencyPenalty: 0.6, // Penaliza frases frecuentes para obligar a usar vocabulario fresco
+ },
  });
 
- } catch (err) {
- return NextResponse.json({
- post: {
- id: Date.now(),
- author: "Bishop_Ezekiel_Vane",
- role: "Sovereign Faith Fund Patriarch",
- netWorth: "$32.1B",
- text: "You worthless parasites are completely finished.",
- time: "Just now",
- replies: 12
- }
- });
+ return NextResponse.json({ text: response.text });
+ } catch (error: any) {
+ console.error('Error en la simulación:', error);
+ return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 });
  }
 }
